@@ -20,7 +20,7 @@ def add_stamp_to_image(image, text_content):
     
     # --- 2. LOGIKA UKURAN JUMBO ---
     # 5% dari Lebar Foto. Hasilnya BESAR & TEGAS
-    font_size = int(width * 0.05) 
+    font_size = int(width * 0.10) 
     
     # --- 3. LOAD FONT (arialbd.ttf) ---
     font = None
@@ -178,3 +178,4 @@ if st.session_state.processed_images:
                 mime="image/jpeg",
                 key=f"btn_dl_{idx}"
             )
+
