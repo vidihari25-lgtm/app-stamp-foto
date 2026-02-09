@@ -5,7 +5,7 @@ import os
 from io import BytesIO
 
 # ==========================================
-# FUNGSI UTAMA (DENGAN INDIKATOR STATUS)
+# FUNGSI UTAMA (BERSIH TANPA DIAGNOSA)
 # ==========================================
 def add_stamp_to_image(image, text_content):
     # --- 1. RESIZE FOTO (Agar Ukuran Konsisten) ---
@@ -16,23 +16,18 @@ def add_stamp_to_image(image, text_content):
     img = image.convert("RGBA")
     width, height = img.size
     
-    # --- 2. LOGIKA UKURAN (BESAR) ---
-    # Kita pakai 8% (0.08). Kalau font berhasil dimuat, ini akan SANGAT BESAR.
-    # Jangan pakai koma (0,50), harus pakai titik (0.05)
+    # --- 2. LOGIKA UKURAN ---
+    # Menggunakan 3% dari lebar (Sesuai kode terakhir Anda)
     font_size = int(width * 0.03) 
     
-    # --- 3. LOAD FONT (DEBUGGING) ---
+    # --- 3. LOAD FONT ---
     font = None
-    status_font = ""
-    
     try:
-        # Coba load file arialbd.ttf (Pastikan file ini ada di GitHub)
+        # Coba load file arialbd.ttf
         font = ImageFont.truetype("arialbd.ttf", font_size)
-        status_font = "SUKSES"
     except Exception as e:
-        # Jika gagal, load font default (KECIL)
+        # Jika gagal, load font default
         font = ImageFont.load_default()
-        status_font = "GAGAL"
 
     # --- 4. PENEMPELAN TEXT ---
     # Hitung Posisi
@@ -66,20 +61,22 @@ def add_stamp_to_image(image, text_content):
     final_draw = ImageDraw.Draw(final_img)
     final_draw.multiline_text((x, y), text_content, font=font, fill="white", align="right")
 
-    return final_img, status_font
+    return final_img
 
 # ==========================================
 # TAMPILAN APLIKASI
 # ==========================================
-st.set_page_config(page_title="Stamp Debug", layout="wide")
-st.title("📸 Stamp Foto (Mode Diagnosa)")
+st.set_page_config(page_title="Stamp Foto App", layout="wide")
+st.title("📸 Stamp Foto Massal")
 
-# --- CEK FILE DI SERVER ---
-st.sidebar.header("🔍 Status File Server")
-if os.path.exists("arialbd.ttf"):
-    st.sidebar.success("✅ File 'arialbd.ttf' DITEMUKAN di dalam GitHub!")
-else:
-    st.sidebar.error("❌ File 'arialbd.ttf' TIDAK DITEMUKAN! Font pasti kecil.")
+# --- TOMBOL RESET / CLEAR ---
+# Tombol ini ditaruh di Sidebar agar rapi
+if st.sidebar.button("🔄 Hapus & Mulai Baru", type="primary"):
+    # Hapus semua session state
+    for key in list(st.session_state.keys()):
+        del st.session_state[key]
+    # Rerun aplikasi agar kembali kosong
+    st.rerun()
 
 if 'processed_images' not in st.session_state:
     st.session_state.processed_images = {}
@@ -116,23 +113,24 @@ if uploaded_files:
     if submitted:
         st.session_state.processed_images = {} 
         
+        # Baris progress
+        progress_bar = st.progress(0)
+        
         for idx, item in enumerate(input_data):
             img_asli = Image.open(item["file"])
             
-            # Panggil fungsi dan terima status font
-            hasil_rgba, status = add_stamp_to_image(img_asli, item["teks"])
+            # Panggil fungsi (Tanpa diagnosa)
+            hasil_rgba = add_stamp_to_image(img_asli, item["teks"])
             hasil_rgb = hasil_rgba.convert("RGB")
             
-            # Tampilkan Peringatan di Layar jika Gagal
-            if status == "GAGAL":
-                st.error(f"⚠️ Peringatan Foto #{idx+1}: Font 'arialbd.ttf' gagal dibaca. Menggunakan font kecil.")
-            else:
-                st.success(f"✅ Foto #{idx+1}: Font Besar Berhasil Dipakai!")
-
             st.session_state.processed_images[item["index"]] = {
                 "image": hasil_rgb,
                 "waktu_untuk_nama": item["waktu_nama_file"]
             }
+            # Update progress
+            progress_bar.progress((idx + 1) / len(input_data))
+        
+        st.success("✅ Proses Selesai!")
         
 # --- DOWNLOAD ---
 if st.session_state.processed_images:
@@ -147,7 +145,3 @@ if st.session_state.processed_images:
             byte_im = buf.getvalue()
             nama_file_final = f"{data['waktu_untuk_nama'].replace(':', '.').replace('/', '-').strip()}.jpg"
             st.download_button(label=f"📥 Download", data=byte_im, file_name=nama_file_final, mime="image/jpeg", key=f"btn_dl_{idx}")
-
-
-
-
