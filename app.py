@@ -19,7 +19,7 @@ def add_stamp_to_image(image, text_content):
     # --- 2. LOGIKA UKURAN (BESAR) ---
     # Kita pakai 8% (0.08). Kalau font berhasil dimuat, ini akan SANGAT BESAR.
     # Jangan pakai koma (0,50), harus pakai titik (0.05)
-    font_size = int(width * 0.02) 
+    font_size = int(width * 0.03) 
     
     # --- 3. LOAD FONT (DEBUGGING) ---
     font = None
@@ -147,6 +147,7 @@ if st.session_state.processed_images:
             byte_im = buf.getvalue()
             nama_file_final = f"{data['waktu_untuk_nama'].replace(':', '.').replace('/', '-').strip()}.jpg"
             st.download_button(label=f"📥 Download", data=byte_im, file_name=nama_file_final, mime="image/jpeg", key=f"btn_dl_{idx}")
+
 
 
 
