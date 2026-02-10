@@ -17,7 +17,7 @@ def add_stamp_to_image(image, text_content):
     width, height = img.size
     
     # --- 2. LOGIKA UKURAN (5% dari Lebar Gambar) ---
-    font_size = int(width * 0.05) 
+    font_size = int(width * 0.03) 
     
     # --- 3. LOAD FONT (ARIAL BOLD) ---
     font = None
@@ -132,3 +132,4 @@ if st.session_state.processed_images:
             # Membersihkan nama file dari karakter ilegal
             nama_file_final = f"{data['nama'].replace(':', '.').replace('/', '-')}.jpg"
             st.download_button(label="📥 Download", data=buf.getvalue(), file_name=nama_file_final, key=f"dl_{idx}")
+
