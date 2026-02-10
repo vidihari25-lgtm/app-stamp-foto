@@ -1,5 +1,5 @@
 def add_stamp_to_image(image, text_content):
-    # --- 1. RESIZE FOTO (Agar Ukuran Konsisten) ---
+    # --- 1. RESIZE FOTO ---
     target_width = 1280
     w_percent = (target_width / float(image.size[0]))
     h_size = int((float(image.size[1]) * float(w_percent)))
@@ -12,21 +12,23 @@ def add_stamp_to_image(image, text_content):
     
     # --- 3. LOAD FONT (ARIAL NARROW) ---
     font = None
-    # Daftar kemungkinan nama file font Arial Narrow
-    font_names = ["ARIALN.TTF", "arialn.ttf", "Arialn.ttf"]
+    # Daftar file yang mungkin ada di folder Anda
+    possible_fonts = ["arialn.ttf", "ARIALN.TTF", "arialnb.ttf", "ARIALNB.TTF"]
     
-    for font_name in font_names:
+    for f_name in possible_fonts:
         try:
-            font = ImageFont.truetype(font_name, font_size)
-            break # Jika berhasil, keluar dari loop
+            # Mencari file di folder yang sama dengan skrip .py
+            font = ImageFont.truetype(f_name, font_size)
+            if font: break
         except:
             continue
 
     if font is None:
-        # Jika file lokal tidak ketemu, coba cari di direktori sistem (khusus Windows)
         try:
+            # Mencari di folder Windows jika dijalankan lokal
             font = ImageFont.truetype("C:/Windows/Fonts/arialn.ttf", font_size)
         except:
+            # Langkah terakhir agar aplikasi TIDAK MATI
             font = ImageFont.load_default()
 
     # --- 4. PENEMPELAN TEXT ---
@@ -37,23 +39,16 @@ def add_stamp_to_image(image, text_content):
 
     margin_x = int(width * 0.04)
     margin_y = int(height * 0.04)
-    
-    x = width - text_width - margin_x
-    y = height - text_height - margin_y
+    x, y = width - text_width - margin_x, height - text_height - margin_y
 
-    # Efek Bayangan
+    # Layer Bayangan
     shadow_layer = Image.new('RGBA', img.size, (0, 0, 0, 0))
     shadow_draw = ImageDraw.Draw(shadow_layer)
-    shadow_color = (0, 0, 0, 180) 
+    offset = max(2, int(font_size / 15))
+    shadow_draw.multiline_text((x + offset, y + offset), text_content, font=font, fill=(0, 0, 0, 180), align="right")
     
-    offset_x = max(3, int(font_size / 15))
-    offset_y = max(3, int(font_size / 15))
-    
-    shadow_draw.multiline_text((x + offset_x, y + offset_y), text_content, font=font, fill=shadow_color, align="right")
-    
-    blur_radius = max(2, int(font_size / 25))
-    shadow_layer_blurred = shadow_layer.filter(ImageFilter.GaussianBlur(radius=blur_radius))
-    final_img = Image.alpha_composite(img, shadow_layer_blurred)
+    shadow_layer = shadow_layer.filter(ImageFilter.GaussianBlur(radius=max(1, int(font_size / 25))))
+    final_img = Image.alpha_composite(img, shadow_layer)
     
     # Teks Utama
     final_draw = ImageDraw.Draw(final_img)
